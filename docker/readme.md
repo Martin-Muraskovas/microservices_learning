@@ -122,4 +122,6 @@ docker push dockerhub_username/docker_repo:latest
 
    `docker run -d -p 80:80 -p 3000:3000 martin-sparta-app`
 
-5. To push this to dockerhub, use the following process:
+5. Push to dockerhub
+   
+   Use the process outlined [here](https://github.com/Martin-Muraskovas/microservices_learning/blob/main/docker/readme.md#commiting-a-running-docker-container-to-an-image-on-a-dockerhub-repository)
