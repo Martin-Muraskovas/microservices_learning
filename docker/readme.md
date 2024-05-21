@@ -68,6 +68,10 @@ docker push dockerhub_username/docker_repo:latest
 ## Containerising the Sparta Test App using Docker
 
 1. Create a Dockerfile in the same folder as your app code.
+   My directory looked like this:
+
+   ![alt text](image-3.png)
+
 2. You will need to have an nginx.conf file, and a supervisord.conf file.
    
    ```
