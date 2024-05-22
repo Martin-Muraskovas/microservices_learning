@@ -175,7 +175,6 @@ docker push dockerhub_username/docker_repo:latest
 
 Modify your docker file to contain this line: 
 
-
 ```
 FROM node:latest
 RUN apt-get update && apt-get install -y nginx supervisor
@@ -193,5 +192,4 @@ EXPOSE 3000
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 CMD ["/usr/bin/supervisord"]
-
 ```
