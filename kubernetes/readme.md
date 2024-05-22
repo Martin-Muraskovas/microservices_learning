@@ -52,3 +52,58 @@
 4. Start a local Kubernetes cluster using minikube.
 5. Verify the cluster is running with `kubectl get nodes`.
 6. Congratulations! You have now set up a local Kubernetes cluster.
+
+
+## Kubernetes Architecture
+
+### Example of a Kubernetes deployment
+```
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: martinmuraskovas/nginx-martin:latest
+        ports:
+        - containerPort: 80
+```
+
+### Architecture Overview:
+- Replicas: 3 replicas of the nginx application.
+- Selector: Used to select Pods based on labels. In my case, it selects Pods with the label app: nginx.
+- Template: Defines the structure for the Pods created by the Deployment. It includes the Pod's labels and containers.
+- Containers: Contains the configuration for the nginx container, including the image to use and the port to expose.
+
+### Labels and Selectors:
+- Labels: Key-value pairs attached to Kubernetes objects (like Pods). They are used to organize and select subsets of objects.
+- Selectors: Define how you select objects based on their labels. They are used to link resources like Deployments with Pods.
+
+### Diagram of Kubernetes Architecture
+![alt text](k8architecture.png)
+
+### Step by Step explanation of my nginx deployment
+1. **apiVersion:** Specifies the version of the Kubernetes API being used.
+2. **kind:** Defines the type of Kubernetes resource being created (Deployment in this case).
+3. **metadata:** Contains information about the Deployment, such as its name.
+4. **spec:**
+   - **selector:** Defines how Pods are selected. In this case, it selects Pods with the label `app: nginx`.
+   - **replicas:** Specifies the desired number of replicas (3 in your case).
+   - **template:** Defines the Pod template.
+     - **metadata:** Includes labels for the Pod.
+     - **spec:** Specifies the Pod's specification.
+       - **containers:** Contains configuration for the containers in the Pod.
+         - **name:** Name of the container.
+         - **image:** Specifies the Docker image to use.
+         - **ports:** Specifies the ports to expose.
