@@ -107,3 +107,86 @@ spec:
          - **name:** Name of the container.
          - **image:** Specifies the Docker image to use.
          - **ports:** Specifies the ports to expose.
+
+### Services
+
+```
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-svc
+  namespace: default
+spec:
+  
+  ports:
+    - nodePort: 30001
+      port: 80
+      targetPort: 80
+
+  selector:
+    app: nginx
+    
+  type: NodePort
+```
+
+
+- `kubectl edit deploy nginx-deployment`
+
+    Make live changes without the deployment having to come down
+
+
+## Deploying the Sparta Test app using Kubernetes
+
+### Create a Deployment file
+```
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-app-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: node-app
+  template:
+    metadata:
+      labels:
+        app: node-app
+    spec:
+      containers:
+        - name: node-app
+          image: martinmuraskovas/martin-node-app
+          ports:
+            - containerPort: 3000
+```
+### Creat a Service file
+```
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-app-service
+spec:
+  selector:
+    app: node-app
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30001
+  type: NodePort
+```
+
+### Deploy your deployment and service
+Use the following commands to deploy your deployment and your service:
+
+`kubectl apply -f deployment.yml`
+
+`kubectl apply -f service.yml`
+
+### Result
+The node app is running on the nodeport that we set up in our service file:
+
+![alt text](image.png)
