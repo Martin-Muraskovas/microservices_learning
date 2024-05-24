@@ -190,3 +190,161 @@ Use the following commands to deploy your deployment and your service:
 The node app is running on the nodeport that we set up in our service file:
 
 ![alt text](image.png)
+
+
+## Implementing a 2-tier architecture in Kubernetes
+
+### MongoDB Deployment and Service
+- **MongoDB Deployment**:
+  - Deploys MongoDB with 2 replicas.
+  - Uses the image `martinmuraskovas/mongo_db_martin`.
+  - Exposes port 27017.
+
+- **MongoDB Service**:
+  - Creates a ClusterIP service named `mongo-service` for MongoDB.
+  - Routes traffic to port 27017.
+
+```
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+        - name: mongodb
+          image: martinmuraskovas/mongo_db_martin
+          ports:
+            - containerPort: 27017
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-service
+spec:
+  selector:
+    app: mongodb
+  ports:
+    - protocol: TCP
+      port: 27017
+      targetPort: 27017
+  type: ClusterIP
+```
+
+### Node.js App Deployment and Service
+- **Node.js App Deployment**:
+  - Deploys Node.js app with 2 replicas.
+  - Uses the image `martinmuraskovas/martin-node-app`.
+  - Exposes port 3000.
+  - Sets the environment variable `DB_HOST` to `mongodb://mongo-service:27017/posts`.
+
+- **Node.js App Service**:
+  - Creates a NodePort service named `node-app-service` for the Node.js app.
+  - Routes external traffic to port 30001, internal traffic to port 3000.
+
+```
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-app-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: node-app
+  template:
+    metadata:
+      labels:
+        app: node-app
+    spec:
+      containers:
+        - name: node-app
+          image: martinmuraskovas/martin-node-app
+          ports:
+            - containerPort: 3000
+          env:
+          - name: DB_HOST
+            value: mongodb://mongo-service:27017/posts
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-app-service
+spec:
+  selector:
+    app: node-app
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+      nodePort: 30001
+  type: NodePort
+```
+
+### Horizontal Pod Autoscaler (HPA) for Node.js App
+- **Horizontal Pod Autoscaler (HPA)**:
+  - Scales the Node.js app deployment based on CPU and memory utilization.
+  - Targets the `node-app-deployment`.
+  - Sets a minimum of 2 replicas and a maximum of 3 replicas.
+  - Scales when average CPU and memory utilization reaches 50%.
+
+```
+---
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: node-app-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: node-app-deployment
+  minReplicas: 2
+  maxReplicas: 3
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 50
+  - type: Resource
+    resource:
+      name: memory
+      targetAverageUtilization: 50
+```
+
+### Persistent Volume for MongoDB
+- **Persistent Volume (PV) for MongoDB**:
+  - Creates a 10Gi hostPath PV named `mongo-pv`.
+  - Provides ReadWriteOnce access mode.
+  - Retains the PV data even after the claim is deleted.
+  - Uses the `standard` storage class.
+  - Mounts the volume at `/mnt/data`.
+
+```
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongo-pv
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard
+  hostPath:
+    path: /mnt/data
+```
